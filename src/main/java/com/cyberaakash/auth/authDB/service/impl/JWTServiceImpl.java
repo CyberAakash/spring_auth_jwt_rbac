@@ -56,7 +56,7 @@ public class JWTServiceImpl implements JWTService {
         return Jwts.parser().setSigningKey(getSignKey()).build().parseClaimsJws(token).getBody();
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails){
+    public boolean  isTokenValid(String token, UserDetails userDetails){
         final String username = extractUserName(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

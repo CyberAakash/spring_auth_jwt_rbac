@@ -1,6 +1,7 @@
 package com.cyberaakash.auth.authDB.service.impl;
 
 import com.cyberaakash.auth.authDB.dto.JwtAuthenticationResponse;
+import com.cyberaakash.auth.authDB.dto.RefreshTokenRequest;
 import com.cyberaakash.auth.authDB.dto.SignInRequest;
 import com.cyberaakash.auth.authDB.dto.SignUpRequest;
 import com.cyberaakash.auth.authDB.entity.Role;
@@ -10,6 +11,7 @@ import com.cyberaakash.auth.authDB.service.AuthenticationService;
 import com.cyberaakash.auth.authDB.service.JWTService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +26,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    @Autowired
     private final JWTService jwtService;
 
     public User signup(SignUpRequest signUpRequest) {
@@ -56,5 +59,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return jwtAuthenticationResponse;
 
+    }
+
+    public JwtAuthenticationResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        String userEmail = jwtService.extractUserName(refreshTokenRequest.getToken());
+        User user = userRepository.findByEmail(userEmail).orElseThrow();
+        if(jwtService.isTokenValid(refreshTokenRequest.getToken(), user)) {
+            var jwt = jwtService.generateToken(user);
+
+            JwtAuthenticationResponse jwtAuthenticationResponse = new JwtAuthenticationResponse();
+
+            jwtAuthenticationResponse.setToken(jwt);
+            jwtAuthenticationResponse.setRefreshToken(refreshTokenRequest.getToken() );
+
+            return jwtAuthenticationResponse;
+        }
+        return null;
     }
 }
